@@ -73,6 +73,7 @@ void handleConfig() {
     String newPassword = server.arg("password");
     saveCredentials(newSsid.c_str(), newPassword.c_str());
     server.send(200, "text/html", "<h1>Wi-Fi credentials updated successfully!</h1>");
+    setup();
   } else {
     server.send(200, "text/html", "<h1>Configure Wi-Fi</h1><form method='POST' action='/config'><input type='text' name='ssid' placeholder='New SSID'><br><input type='password' name='password' placeholder='New Password'><br><input type='submit' value='Save'></form>");
   }
@@ -81,31 +82,48 @@ void handleConfig() {
 void setup() {
   Serial.begin(115200);
 
-  IPAddress softAPIP = WiFi.softAP(defaultSsid, defaultPassword);
-  Serial.print("SoftAP IP Address: ");
-  Serial.println(softAPIP);
-
   char ssid[EEPROM_SIZE];
   char password[EEPROM_SIZE];
 
   loadCredentials(ssid, password);
-
-  if (WiFi.begin(ssid, password) == WL_CONNECTED) {
-    Serial.println("==================");
-    Serial.println("\nConnected to Wi-Fi");
+  
+  if (strlen(ssid)>1) {
+    Serial.print("\nTring Connect to Wi-Fi with ssid: ");
+    Serial.print(ssid);
+    Serial.print(" password: ");
+    Serial.println(password);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid,password);
+    WiFi.setHostname("esp8266");
+    int i=0;
+    while (WiFi.status() != WL_CONNECTED && i < 5) {
+    delay(5000);
+    Serial.printf("\nConnecting to Wi-Fi %s %s\n",ssid,password);
+    i++;
+  }
+  }
+  if(WiFi.status() == WL_CONNECTED){
+    Serial.printf("\nConnected to Wi-Fi %s\n",ssid);
     Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
     // Proceed with normal operation
   } else {
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(defaultSsid, defaultPassword);
+    IPAddress softAPIP =WiFi.softAPIP();
+    Serial.println("Failed to connect to Wi-Fi, Work as Access Point Mode");
+    Serial.print("SoftAP IP Address: ");
+    Serial.println(softAPIP);
     Serial.println("==================");
-    Serial.println("Failed to connect to Wi-Fi");
+    
     // Set up web server routes
     server.on("/", handleRoot);
     server.on("/config", handleConfig);
     server.begin();
+    Serial.println("Web Server Startd");
   }
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    // Serial.print("IP Address: ");
+    // Serial.println(WiFi.localIP());
 }
 
 void loop() {
