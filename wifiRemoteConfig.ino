@@ -116,14 +116,12 @@ void setup() {
     Serial.println(softAPIP);
     Serial.println("==================");
     
+  }
     // Set up web server routes
     server.on("/", handleRoot);
     server.on("/config", handleConfig);
     server.begin();
     Serial.println("Web Server Startd");
-  }
-    // Serial.print("IP Address: ");
-    // Serial.println(WiFi.localIP());
 }
 
 void loop() {
