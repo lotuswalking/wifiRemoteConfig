@@ -81,7 +81,9 @@ void handleConfig() {
 void setup() {
   Serial.begin(115200);
 
-  WiFi.softAP(defaultSsid, defaultPassword);
+  IPAddress softAPIP = WiFi.softAP(defaultSsid, defaultPassword);
+  Serial.print("SoftAP IP Address: ");
+  Serial.println(softAPIP);
 
   char ssid[EEPROM_SIZE];
   char password[EEPROM_SIZE];
@@ -91,6 +93,8 @@ void setup() {
   if (WiFi.begin(ssid, password) == WL_CONNECTED) {
     Serial.println("==================");
     Serial.println("\nConnected to Wi-Fi");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
     // Proceed with normal operation
   } else {
     Serial.println("==================");
@@ -100,6 +104,8 @@ void setup() {
     server.on("/config", handleConfig);
     server.begin();
   }
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
 }
 
 void loop() {
